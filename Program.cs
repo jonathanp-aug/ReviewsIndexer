@@ -1,11 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
+using ReviewsIndexer.Data;
 
 namespace ReviewsIndexer
 {
@@ -13,7 +8,12 @@ namespace ReviewsIndexer
     {
         public static void Main(string[] args)
         {
+            ProductReviewsIndexationTask task = new ProductReviewsIndexationTask(LocalProductReviewsIndex.Instance);
+            task.Start();
+
             CreateHostBuilder(args).Build().Run();
+
+            task.Stop();
         }
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>
