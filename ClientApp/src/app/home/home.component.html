@@ -21,9 +21,9 @@
 			</div>
 		</div>
 		<div class="col col-sm-9">
-			<div class="no-details" *ngIf="!selectedState"> Select a product to view details...</div>
+			<div class="no-details" *ngIf="!selectedState"> Select a product to view details.<br/>or <br/>Use the form to request for product indexation.</div>
 			<div class="no-details" *ngIf="selectedState && selectedState.indexationStatus <= 1">
-				<h3 class="text-warning">Indexing...</h3>
+				<h3 class="text-warning">Indexing... Please wait a few seconds</h3>
 				Product with Asin {{ selectedState.productAsin }} is currently indexing.</div>
 			<product-reviews [state]="selectedState" *ngIf="selectedState && selectedState.indexationStatus === 2"></product-reviews>
 			<div class="no-details" *ngIf="selectedState && selectedState.indexationStatus === 3">
