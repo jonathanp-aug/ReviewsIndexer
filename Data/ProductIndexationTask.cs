@@ -13,6 +13,7 @@ namespace ReviewsIndexer.Data
         private Thread IndexationEngineThread = null;
         private volatile bool continueIndexation = false;
         private IProductIndexUpdater IndexUpdater;
+        private CultureInfo culture = CultureInfo.CreateSpecificCulture("en-US");
 
 
         public ProductIndexationTask(IProductIndexUpdater indexUpdater)
@@ -56,7 +57,6 @@ namespace ReviewsIndexer.Data
         private void IndexationEngineJob()
         {
             var restClient = new RestClient("https://www.amazon.com/product-reviews/");
-            var culture = CultureInfo.CreateSpecificCulture("en-US");
 
             while (continueIndexation)
             {
@@ -92,11 +92,24 @@ namespace ReviewsIndexer.Data
                         var countersPhrase = htmlDoc.DocumentNode.SelectSingleNode("//div[@data-hook = 'cr-filter-info-review-rating-count']/span").InnerText.Trim();
                         var countersPhrases = countersPhrase.Split('|');
 
-                        var reviewNodes = htmlDoc.DocumentNode.SelectNodes("//div[@data-hook = 'review']");
                         var reviews = new List<Review>();
+                        AppendReviews(htmlDoc, reviews);
 
-                        foreach (var node in reviewNodes)
-                            reviews.Add(ParseHtmlNode(node, culture));
+                        for (int i = 2; i <= 5; i++)
+                        {
+                            var pageRequest = new RestRequest(asin, Method.GET);
+                            pageRequest.AddParameter("sortBy", "recent", ParameterType.QueryString);
+                            pageRequest.AddParameter("pageNumber", i, ParameterType.QueryString);
+                            var pageResponse = restClient.Execute(pageRequest);
+
+                            if (pageResponse.StatusCode == System.Net.HttpStatusCode.OK)
+                            {
+                                var pageHtmlDoc = new HtmlDocument();
+                                pageHtmlDoc.LoadHtml(pageResponse.Content);
+                                if (AppendReviews(pageHtmlDoc, reviews) < 10)
+                                    break;
+                            }
+                        }
 
                         IndexUpdater.SetAsSucceded(asin, name, $"https://amazon.com{url}", by, averageRating, countersPhrases[0], countersPhrases[1], reviews);
                     }
@@ -110,6 +123,15 @@ namespace ReviewsIndexer.Data
                     IndexUpdater.SetAsErrored(asin, $"{ex.GetType().FullName} : {ex.Message}");
                 }
             }
+        }
+
+        private int AppendReviews(HtmlDocument htmlDoc, List<Review> collection)
+        {
+            var reviewNodes = htmlDoc.DocumentNode.SelectNodes("//div[@data-hook = 'review']");
+            foreach (var node in reviewNodes)
+                collection.Add(ParseHtmlNode(node, culture));
+            
+            return reviewNodes.Count;
         }
 
         private static Review ParseHtmlNode(HtmlNode node, CultureInfo culture)
