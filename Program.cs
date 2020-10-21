@@ -8,7 +8,7 @@ namespace ReviewsIndexer
     {
         public static void Main(string[] args)
         {
-            ProductReviewsIndexationTask task = new ProductReviewsIndexationTask(LocalProductReviewsIndex.Instance);
+            ProductIndexationTask task = new ProductIndexationTask(LocalProductIndex.Instance);
             task.Start();
 
             CreateHostBuilder(args).Build().Run();

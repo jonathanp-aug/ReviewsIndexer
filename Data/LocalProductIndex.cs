@@ -6,39 +6,43 @@ namespace ReviewsIndexer.Data
     /// <summary>
     /// A local thread safe product reviews index
     /// </summary>
-    public class LocalProductReviewsIndex : IProductReviewsIndexUpdater
+    public class LocalProductIndex : IProductIndexUpdater
     {
-        public static LocalProductReviewsIndex Instance { get; } = new LocalProductReviewsIndex();
+        public static LocalProductIndex Instance { get; } = new LocalProductIndex();
 
         private object _IndexedDataSync = new object();
         private object _LocalQueueSync = new object();
-        private Dictionary<string,ReviewsIndexationState> _IndexedData = new Dictionary<string, ReviewsIndexationState>();
+        private Dictionary<string, ProductIndexationState> _IndexedData = new Dictionary<string, ProductIndexationState>();
         private Queue<string> _LocalQueue = new Queue<string>();
 
-        private LocalProductReviewsIndex()
+        private LocalProductIndex()
         {
 
         }
 
-        public IEnumerable<ReviewsIndexationState> IndexedData
+        public ProductIndexationState this[string asin] {
+            get
+            {
+                lock (_IndexedDataSync)
+                    return _IndexedData[asin];
+            }
+        }
+
+        public IEnumerable<ProductIndexationState> IndexedData
         {
             get
             {
                 lock(_IndexedDataSync)
-                {
                     return _IndexedData.Values.ToList();
-                }
             }
         }
 
-        public ReviewsIndexationState RequestIndexation(string asin)
+        public ProductIndexationState RequestIndexation(string asin)
         {
             if (string.IsNullOrWhiteSpace(asin))
-            {
                 return null;
-            }
 
-            var state = new ReviewsIndexationState(asin.Trim());
+            var state = new ProductIndexationState(asin);
 
             try
             {
@@ -46,7 +50,7 @@ namespace ReviewsIndexer.Data
                 {
                     if (_IndexedData.ContainsKey(state.ProductAsin))
                     {
-                        if (_IndexedData[state.ProductAsin].IndexationStatus != ReviewsIndexationState.Status.Error)
+                        if (_IndexedData[state.ProductAsin].IndexationStatus != ProductIndexationState.Status.Error)
                             return _IndexedData[state.ProductAsin];
                         else
                             _IndexedData.Remove(state.ProductAsin);
@@ -73,17 +77,23 @@ namespace ReviewsIndexer.Data
             lock (_IndexedDataSync)
             {
                 var state = _IndexedData[asin];
-                state.IndexationStatus = ReviewsIndexationState.Status.Error;
+                state.IndexationStatus = ProductIndexationState.Status.Error;
                 state.ErrorMessage = message;
             }
         }
 
-        public void SetAsSucceded(string asin, IEnumerable<Review> reviews)
+        public void SetAsSucceded(string asin, string name, string url, string by, string ratingAverage, string ratingTotalCount, string reviewsTotalCount, IEnumerable<Review> reviews)
         {
             lock (_IndexedDataSync)
             {
                 var state = _IndexedData[asin];
-                state.IndexationStatus = ReviewsIndexationState.Status.Indexed;
+                state.IndexationStatus = ProductIndexationState.Status.Indexed;
+                state.Name = name;
+                state.Url = url;
+                state.By = by;
+                state.RatingAverage = ratingAverage;
+                state.RatingTotalCount = ratingTotalCount;
+                state.ReviewTotalCount = reviewsTotalCount;
                 state.IndexedReviews = reviews;
             }
         }
@@ -93,7 +103,7 @@ namespace ReviewsIndexer.Data
             lock (_IndexedDataSync)
             {
                 var state = _IndexedData[asin];
-                state.IndexationStatus = ReviewsIndexationState.Status.Indexing;
+                state.IndexationStatus = ProductIndexationState.Status.Indexing;
             }
         }
 
