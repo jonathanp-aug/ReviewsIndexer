@@ -93,7 +93,7 @@ namespace ReviewsIndexer.Data
                         var countersPhrases = countersPhrase.Split('|');
 
                         var reviews = new List<Review>();
-                        AppendReviews(htmlDoc, reviews);
+                        AppendReviews(htmlDoc, reviews, asin);
 
                         for (int i = 2; i <= 5; i++)
                         {
@@ -106,7 +106,7 @@ namespace ReviewsIndexer.Data
                             {
                                 var pageHtmlDoc = new HtmlDocument();
                                 pageHtmlDoc.LoadHtml(pageResponse.Content);
-                                if (AppendReviews(pageHtmlDoc, reviews) < 10)
+                                if (AppendReviews(pageHtmlDoc, reviews, asin) < 10)
                                     break;
                             }
                         }
@@ -125,18 +125,20 @@ namespace ReviewsIndexer.Data
             }
         }
 
-        private int AppendReviews(HtmlDocument htmlDoc, List<Review> collection)
+        private int AppendReviews(HtmlDocument htmlDoc, List<Review> collection, String productAsin)
         {
             var reviewNodes = htmlDoc.DocumentNode.SelectNodes("//div[@data-hook = 'review']");
             foreach (var node in reviewNodes)
-                collection.Add(ParseHtmlNode(node, culture));
+                collection.Add(ParseHtmlNode(node, culture, productAsin));
             
             return reviewNodes.Count;
         }
 
-        private static Review ParseHtmlNode(HtmlNode node, CultureInfo culture)
+        private static Review ParseHtmlNode(HtmlNode node, CultureInfo culture, String productAsin)
         {
             var review = new Review();
+            review.ProductAsin = productAsin;
+
             review.ID = node.GetAttributeValue("id", string.Empty);
             review.Title = node.SelectSingleNode(".//a[@data-hook='review-title']/span").InnerText;
             review.Content = node.SelectSingleNode(".//span[@data-hook='review-body']/span").InnerText;

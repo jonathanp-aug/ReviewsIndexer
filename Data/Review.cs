@@ -13,5 +13,7 @@ namespace ReviewsIndexer.Data
         public string Content { get; set; }
 
         public int Rating { get; set; }
+
+        public string ProductAsin { get; set; }
     }
 }

@@ -1,54 +1,34 @@
-<h2><a href="{{ state.url }}" target="_blank">{{ state.name }}</a></h2>
-<table class="table mb-3 mt-3">
-	<tr>
-		<td>By:</td>
-		<td>{{ state.by }}</td>
-	</tr>
-	<tr>
-		<td>Ratings Count:</td>
-		<td>{{ state.ratingTotalCount }}</td>
-	</tr>
-	<tr>
-		<td>Average Rating:</td>
-		<td>{{ state.ratingAverage }}</td>
-	</tr>
-	<tr>
-		<td>Reviews Count:</td>
-		<td>{{ state.reviewTotalCount }}</td>
-	</tr>
-</table>
-<h3 class="">Top 50 recent reviews:</h3>
-<table class="table table-bordered table-striped mb-3">
-	<thead>
+<div class="no-details" *ngIf="state && state.indexationStatus <= 1">
+	<h3 class="text-warning">Indexing... Please wait a few seconds</h3>
+	Product with Asin {{ state.productAsin }} is currently indexing.
+</div>
+
+<div *ngIf="state && state.indexationStatus === 2">
+	<h2 class="mb-3"><a href="{{ state.url }}" target="_blank">{{ state.name }}</a></h2>
+	<table class="table table-sm mb-3">
 		<tr>
-			<th width="15%">Date
-				<div class="float-right btn-group">
-					<a href="#" class="text-{{ getBtnOrderClass('date', true) }}" (click)="orderReviews('date', true)">0</a>
-					<a href="#" class="text-{{ getBtnOrderClass('date', false) }}" (click)="orderReviews('date', false)">9</a>
-				</div>
-			</th>
-			<th width="15%">Rating
-				<div class="float-right btn-group">
-					<a href="#" class="text-{{ getBtnOrderClass('rating', true) }}" (click)="orderReviews('rating', true)">0</a>
-					<a href="#" class="text-{{ getBtnOrderClass('rating', false) }}" (click)="orderReviews('rating', false)">9</a>
-				</div>
-			</th>
-			<th>Title
-				<div class="float-right btn-group">
-					<a href="#" class="text-{{ getBtnOrderClass('title', true) }}" (click)="orderReviews('title', true)">A</a>
-					<a href="#" class="text-{{ getBtnOrderClass('title', false) }}" (click)="orderReviews('title', false)">Z</a>
-				</div>
-			</th>
-		</tr>
-	</thead>
-	<tbody *ngFor="let review of state.indexedReviews">
-		<tr>
-			<td>{{ formatDate(review.date) }}</td>
-			<td class="text-center">{{ review.rating }}</td>
-			<td>{{ review.title }}</td>
+			<td>By:</td>
+			<td>{{ state.by }}</td>
 		</tr>
 		<tr>
-			<td colspan="3"><small>{{ review.content }}</small></td>
+			<td>Ratings Count:</td>
+			<td>{{ state.ratingTotalCount }}</td>
 		</tr>
-	</tbody>
-</table>
+		<tr>
+			<td>Average Rating:</td>
+			<td>{{ state.ratingAverage }}</td>
+		</tr>
+		<tr>
+			<td>Reviews Count:</td>
+			<td>{{ state.reviewTotalCount }}</td>
+		</tr>
+	</table>
+
+	<h3 class="mb-3">Top 50 recent reviews:</h3>
+	<review-table [productStates]="[state]"></review-table>
+</div>
+
+<div class="no-details" *ngIf="state && state.indexationStatus === 3">
+	<h3 class="text-danger"> An error occured indexing product {{ state.productAsin }}</h3>
+	{{ state.errorMessage }}
+</div>

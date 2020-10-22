@@ -3,5 +3,6 @@ export default interface Review {
 	date: string,
 	title: string,
 	content: string,
-	rating: number
+	rating: number,
+	productAsin: string
 }

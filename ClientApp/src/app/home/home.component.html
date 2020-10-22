@@ -5,30 +5,29 @@
 			<div *ngIf="(productStates || []).length > 0">
 				<hr />
 				<div class="" *ngFor="let state of productStates">
-					<button (click)="selectState(state)"
-						class="btn btn-block text-left btn-{{state === selectedState ? 'secondary' : 'light'}} mb-1">
+					<button (click)="selectState(state.productAsin)" class="btn btn-block text-left btn-{{state.productAsin === selectedState ? 'secondary' : 'light'}} mb-1">
 						<span class="badge badge-pill badge-{{ getBadgeLevel(state) }}">&nbsp;</span>&nbsp;{{ state.productAsin }}
 					</button>
 				</div>
+				<button (click)="selectState('all')" class="btn btn-block text-left btn-success mb-1">
+					Show All Reviews
+				</button>
 			</div>
 			<hr />
 			<div class="index-form">
 				<form [formGroup]="requestIndexationForm" (ngSubmit)="onRequestIndexation()">
-					<input class="form-control" type="text" placeholder="Type here any product ASINs..." [formControl]="asinsControl" />
+					<input name="asins" class="form-control" type="text" placeholder="Type here any product ASINs..." [formControl]="asinsControl" />
 					<span class="info">* Multiple ASINs must be separated with a comma.</span>
 					<button class="btn btn-primary btn-block mt-3" type="submit">Index</button>
 				</form>
 			</div>
 		</div>
 		<div class="col col-sm-9">
-			<div class="no-details" *ngIf="!selectedState"> Select a product to view details.<br/>or <br/>Use the form to request for product indexation.</div>
-			<div class="no-details" *ngIf="selectedState && selectedState.indexationStatus <= 1">
-				<h3 class="text-warning">Indexing... Please wait a few seconds</h3>
-				Product with Asin {{ selectedState.productAsin }} is currently indexing.</div>
-			<product-reviews [state]="selectedState" *ngIf="selectedState && selectedState.indexationStatus === 2"></product-reviews>
-			<div class="no-details" *ngIf="selectedState && selectedState.indexationStatus === 3">
-				<h3 class="text-danger"> An error occured indexing product {{ selectedState.productAsin }}</h3>
-				{{ selectedState.errorMessage }}
+			<div class="no-details" *ngIf="!selectedState && !viewAll"> Select a product to view details.<br/>or <br/>Use the form to request for product indexation.</div>
+			<product-reviews [productStates]="productStates" [selected]="selectedState" *ngIf="selectedState && selectedState !== 'all'"></product-reviews>
+			<div *ngIf="selectedState && selectedState === 'all'">
+				<h2 class="mb-3">All requested reviews:</h2>
+				<review-table [productStates]="productStates" [showProductAsin]="true"></review-table>
 			</div>
 		</div>
 	</div>

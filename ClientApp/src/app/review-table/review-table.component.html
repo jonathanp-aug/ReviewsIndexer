@@ -1,0 +1,45 @@
+<div class="form-inline mb-2">
+	<span class="mr-2">Search Text:</span>
+	<input type="text" class="form-control" (keyup)="onSearchTextChange($event)" />
+</div>
+<table class="table table-bordered table-striped mb-3">
+	<thead>
+		<tr>
+			<th width="15%" *ngIf="showProductAsin === true">Asin
+				<div class="float-right btn-group">
+					<a href="#" class="text-{{ getBtnOrderClass('date', true) }}" (click)="orderReviews('date', true)">0</a>
+					<a href="#" class="text-{{ getBtnOrderClass('date', false) }}" (click)="orderReviews('date', false)">9</a>
+				</div>
+			</th>
+			<th width="15%">Date
+				<div class="float-right btn-group">
+					<a href="#" class="text-{{ getBtnOrderClass('date', true) }}" (click)="orderReviews('date', true)">0</a>
+					<a href="#" class="text-{{ getBtnOrderClass('date', false) }}" (click)="orderReviews('date', false)">9</a>
+				</div>
+			</th>
+			<th width="15%">Rating
+				<div class="float-right btn-group">
+					<a href="#" class="text-{{ getBtnOrderClass('rating', true) }}" (click)="orderReviews('rating', true)">0</a>
+					<a href="#" class="text-{{ getBtnOrderClass('rating', false) }}" (click)="orderReviews('rating', false)">9</a>
+				</div>
+			</th>
+			<th>Title
+				<div class="float-right btn-group">
+					<a href="#" class="text-{{ getBtnOrderClass('title', true) }}" (click)="orderReviews('title', true)">A</a>
+					<a href="#" class="text-{{ getBtnOrderClass('title', false) }}" (click)="orderReviews('title', false)">Z</a>
+				</div>
+			</th>
+		</tr>
+	</thead>
+	<tbody *ngFor="let review of displayedReviews || reviews">
+		<tr>
+			<td *ngIf="showProductAsin === true">{{ review.productAsin }}</td>
+			<td>{{ formatDate(review.date) }}</td>
+			<td class="text-center">{{ review.rating }}</td>
+			<td>{{ review.title }}</td>
+		</tr>
+		<tr>
+			<td [attr.colspan]="showProductAsin === true ? 4 : 3"><small>{{ review.content }}</small></td>
+		</tr>
+	</tbody>
+</table>

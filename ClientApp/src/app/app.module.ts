@@ -9,12 +9,14 @@ import { AppComponent } from './app.component';
 import { NavMenuComponent } from './nav-menu/nav-menu.component';
 import { HomeComponent } from './home/home.component';
 import { ProductReviewsComponent } from './product-reviews/product-reviews.component';
+import { ReviewTableComponent } from './review-table/review-table.component';
 
 @NgModule({
 	declarations: [
 		AppComponent,
 		NavMenuComponent,
 		HomeComponent,
+		ReviewTableComponent,
 		ProductReviewsComponent
 	],
 	imports: [
