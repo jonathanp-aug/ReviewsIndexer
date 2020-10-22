@@ -30,7 +30,9 @@ export class ReviewTableComponent {
 		if (!this.productStates || this.productStates.length === 0)
 			return [];
 
-		var tmp = this.productStates.map(state => state.indexedReviews).reduce((a,b) => a.concat(b));
+		var tmp = this.productStates
+			.filter(state => state.indexationStatus === 2)
+			.reduce((a,b) => { return a.concat(b.indexedReviews)}, []);
 
 		if (this.searchText && this.searchText !== '')
 			tmp = tmp.filter(review => {
