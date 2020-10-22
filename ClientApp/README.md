@@ -1,27 +1,17 @@
 # ReviewsIndexer
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 6.0.0.
+## Building
 
-## Development server
+run the command `dotnet build`
 
-Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The app will automatically reload if you change any of the source files.
+## Execute
 
-## Code scaffolding
+run the command `dotnet run`. The application is available at `https://localhost:5001`
 
-Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
+## How to improve this PoC into a production-ready application
 
-## Build
-
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory. Use the `--prod` flag for a production build.
-
-## Running unit tests
-
-Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
-
-## Running end-to-end tests
-
-Run `ng e2e` to execute the end-to-end tests via [Protractor](http://www.protractortest.org/).
-
-## Further help
-
-To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI README](https://github.com/angular/angular-cli/blob/master/README.md).
+- Replace the local static index with a stored external index based on SQL, NoSQL, Lucene or whatever can handle fulltext indexation.
+- Replace the local static queue with an external queuing service that can store non handled items
+- On back-end, add a logging system and push pertinent logs into a monitoring system to track issues and performances
+- Handle many parralel indexation tasks to improve performance
+- In production, split back-end and front-end to be hosted with distinct URLs
