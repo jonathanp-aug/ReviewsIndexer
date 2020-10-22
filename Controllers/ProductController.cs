@@ -11,17 +11,17 @@ namespace ReviewsIndexer.Controllers
     public class ProductController : ControllerBase
     {
 
-        private IProductIndex index;
+        private IProductIndex ProductIndex;
 
-        public ProductController()
+        public ProductController(IProductIndex productIndex)
         {
-            index = LocalProductIndex.Instance;
+            ProductIndex = productIndex;
         }
 
         [HttpGet]
         public IEnumerable<ProductIndexationState> ListAll()
         {
-            return index.IndexedData;
+            return ProductIndex.IndexedData;
         }
 
         [HttpGet]
@@ -30,7 +30,7 @@ namespace ReviewsIndexer.Controllers
             if (string.IsNullOrEmpty(asins))
                 return new ProductIndexationState[0];
 
-            return asins.Split(',').Select(asin => index[asin.Trim()]).ToArray();
+            return asins.Split(',').Select(asin => ProductIndex[asin.Trim()]).ToArray();
         }
 
         [HttpPost]
@@ -43,7 +43,7 @@ namespace ReviewsIndexer.Controllers
             
             foreach (var asin in asins.Split(','))
             {
-                var state = index.RequestIndexation(asin.Trim());
+                var state = ProductIndex.RequestIndexation(asin.Trim());
                 if (state != null)
                     results.Add(state);
             }

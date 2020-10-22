@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
-using ReviewsIndexer.Data;
+using Unity.Microsoft.DependencyInjection;
 
 namespace ReviewsIndexer
 {
@@ -13,6 +13,7 @@ namespace ReviewsIndexer
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>
             Host.CreateDefaultBuilder(args)
+                .UseUnityServiceProvider()
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
                     webBuilder.UseStartup<Startup>();
