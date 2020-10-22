@@ -1,27 +1,33 @@
 using HtmlAgilityPack;
+using Microsoft.Extensions.Hosting;
 using RestSharp;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Text.RegularExpressions;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace ReviewsIndexer.Data
 {
-    public class ProductIndexationTask
+    public class ProductIndexationTask : IHostedService
     {
         private Thread IndexationEngineThread = null;
         private volatile bool continueIndexation = false;
         private IProductIndexUpdater IndexUpdater;
         private CultureInfo culture = CultureInfo.CreateSpecificCulture("en-US");
+        private RestClient RestClient;
 
+        private string AmazonBaseUrl;
 
-        public ProductIndexationTask(IProductIndexUpdater indexUpdater)
+        public ProductIndexationTask(IProductIndexUpdater indexUpdater, string amazonProductReviewsUrl, string amazonBaseUrl)
         {
             if (indexUpdater == null)
                 throw new ArgumentNullException("indexUpdater");
 
             IndexUpdater = indexUpdater;
+            AmazonBaseUrl = amazonBaseUrl;
+            RestClient = new RestClient(amazonProductReviewsUrl);
         }
 
         public bool IsIndexationEngineRunning
@@ -32,32 +38,34 @@ namespace ReviewsIndexer.Data
             }
         }
 
-        public void Start()
+        public Task StartAsync(CancellationToken cancellationToken)
         {
-            if (IsIndexationEngineRunning)
-                return;
+            if (!cancellationToken.IsCancellationRequested && !IsIndexationEngineRunning)
+            {
+                continueIndexation = true;
+                ThreadStart starter = delegate { IndexationEngineJob(); };
+                IndexationEngineThread = new Thread(starter);
+                IndexationEngineThread.IsBackground = true;
+                IndexationEngineThread.Start();
+            }
 
-            continueIndexation = true;
-            ThreadStart starter = delegate { IndexationEngineJob(); };
-            IndexationEngineThread = new Thread(starter);
-            IndexationEngineThread.IsBackground = true;
-            IndexationEngineThread.Start();
+            return Task.CompletedTask;
         }
 
-        public void Stop()
+        public Task StopAsync(CancellationToken cancellationToken)
         {
-            if (!IsIndexationEngineRunning)
-                return;
+            if (cancellationToken.IsCancellationRequested && IsIndexationEngineRunning)
+            {
+                continueIndexation = false;
+                IndexationEngineThread.Join();
+                IndexationEngineThread = null;
+            }
 
-            continueIndexation = false;
-            IndexationEngineThread.Join();
-            IndexationEngineThread = null;
-        }
+            return Task.CompletedTask;
+        }       
 
         private void IndexationEngineJob()
         {
-            var restClient = new RestClient("https://www.amazon.com/product-reviews/");
-
             while (continueIndexation)
             {
                 if (!IndexUpdater.TryDequeueRequest(out var asin))
@@ -75,7 +83,7 @@ namespace ReviewsIndexer.Data
 
                     var request = new RestRequest(asin, Method.GET);
                     request.AddParameter("sortBy", "recent", ParameterType.QueryString);
-                    var response = restClient.Execute(request);
+                    var response = RestClient.Execute(request);
 
                     if (!continueIndexation)
                         break;
@@ -100,7 +108,7 @@ namespace ReviewsIndexer.Data
                             var pageRequest = new RestRequest(asin, Method.GET);
                             pageRequest.AddParameter("sortBy", "recent", ParameterType.QueryString);
                             pageRequest.AddParameter("pageNumber", i, ParameterType.QueryString);
-                            var pageResponse = restClient.Execute(pageRequest);
+                            var pageResponse = RestClient.Execute(pageRequest);
 
                             if (pageResponse.StatusCode == System.Net.HttpStatusCode.OK)
                             {
@@ -111,7 +119,7 @@ namespace ReviewsIndexer.Data
                             }
                         }
 
-                        IndexUpdater.SetAsSucceded(asin, name, $"https://amazon.com{url}", by, averageRating, countersPhrases[0], countersPhrases[1], reviews);
+                        IndexUpdater.SetAsSucceded(asin, name, $"{AmazonBaseUrl}{url}", by, averageRating, countersPhrases[0], countersPhrases[1], reviews);
                     }
                     else
                     {
